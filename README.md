@@ -353,24 +353,28 @@ context-graphs/
 
 ## Viewing the Graph Database
 
-**This project uses a live, publicly viewable Neo4j Aura database!**
+**This project uses a live Neo4j Aura database with real-time decision traces!**
 
-Anyone can explore the decision traces and see how the system builds organizational memory:
+Want to explore the decision graph and see how the system builds organizational memory?
 
-### Quick Access
+### 🔐 Request Database Access
 
-🔗 **[Open Neo4j Browser](https://browser.neo4j.io/?connectURL=neo4j+s://7d50579e.databases.neo4j.io)**
+**Interested in viewing the live decision traces?**
 
-**Connection Details:**
+📧 **Message me for viewer access** - I'll add you as a read-only viewer to the Neo4j database.
 
-- URI: `neo4j+s://7d50579e.databases.neo4j.io`
-- Username: `neo4j`
-- Password: `SvHj-D4sLeJdgtgebGSoOAhqVnYESzqTF5nP7tqyVKU`
-- Database: `neo4j` (default)
+Once granted access, you'll be able to:
+
+- Browse all decision nodes and relationships
+- Run read-only Cypher queries
+- Explore policies, precedents, and decision reasoning
+- See real-time updates as new decisions are made
+
+**Why request access?** To keep the database secure while still enabling collaboration and transparency for legitimate researchers and interested parties.
 
 ### Example Queries
 
-Once connected, try these queries to explore the decision graph:
+Once you have access, try these queries to explore the decision graph:
 
 **See all recent decisions:**
 
