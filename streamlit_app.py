@@ -384,23 +384,69 @@ with tab1:
 with tab2:
     st.header("Decision History")
     
-    if 'decision_history' in st.session_state and st.session_state.decision_history:
-        for idx, decision in enumerate(st.session_state.decision_history):
-            with st.expander(f"{decision['request'][:80]}... - {decision['decision']} ({decision['timestamp'][:19]})"):
-                st.markdown(f"**Decision ID:** {decision['decision_id']}")
-                st.markdown(f"**Result:** {'✅ APPROVE' if decision['decision'] == 'APPROVE' else '❌ DENY'}")
-                st.markdown(f"**Confidence:** {decision['confidence']}")
-                st.markdown(f"**Reasoning:** {decision['reasoning']}")
+    st.markdown("📊 **Recent decisions from Neo4j database**")
+    
+    # Fetch decisions from Neo4j
+    try:
+        # Import here to avoid circular imports
+        from services.graph import get_recent_decisions
+        
+        with st.spinner("Loading decisions from Neo4j..."):
+            decisions = get_recent_decisions(limit=50)
+        
+        if decisions:
+            st.caption(f"Showing {len(decisions)} most recent decisions")
+            
+            for idx, decision in enumerate(decisions):
+                # Extract fields from Neo4j node
+                decision_id = decision.get('id', 'Unknown')
+                response = decision.get('response', decision.get('decision', 'Unknown'))
+                prompt = decision.get('prompt', decision.get('request', 'No prompt available'))
+                reasoning = decision.get('reasoning', 'No reasoning available')
+                confidence = decision.get('confidence', 0.0)
+                created_at = decision.get('created_at', 'Unknown time')
                 
-                col1, col2, col3 = st.columns(3)
-                with col1:
-                    st.metric("Policies", decision['policies_considered'])
-                with col2:
-                    st.metric("Precedents", decision['precedents_found'])
-                with col3:
-                    st.metric("Used Precedents", "Yes" if decision['used_precedents'] else "No")
-    else:
-        st.info("No decisions made yet. Go to 'Make a Decision' tab to create one!")
+                # Truncate prompt for display
+                prompt_preview = prompt[:80] + "..." if len(prompt) > 80 else prompt
+                
+                with st.expander(f"{prompt_preview} - {response} ({created_at[:19]})"):
+                    st.markdown(f"**Decision ID:** `{decision_id}`")
+                    st.markdown(f"**Result:** {'✅ APPROVE' if response == 'APPROVE' else '❌ DENY' if response == 'DENY' else '⚠️ ' + response}")
+                    st.markdown(f"**Confidence:** {confidence}")
+                    st.markdown(f"**Reasoning:** {reasoning}")
+                    
+                    # Show full prompt
+                    with st.expander("View Full Request"):
+                        st.text(prompt)
+                    
+                    # Neo4j link
+                    neo4j_url = f"https://browser.neo4j.io/?connectURL=neo4j+s://7d50579e.databases.neo4j.io"
+                    st.markdown(f"[View in Neo4j Browser]({neo4j_url})")
+        else:
+            st.info("No decisions found in the database. Go to 'Make a Decision' tab to create one!")
+            
+    except Exception as e:
+        st.error(f"Error loading decisions from Neo4j: {str(e)}")
+        st.info("Using session history as fallback...")
+        
+        # Fallback to session state
+        if 'decision_history' in st.session_state and st.session_state.decision_history:
+            for idx, decision in enumerate(st.session_state.decision_history):
+                with st.expander(f"{decision['request'][:80]}... - {decision['decision']} ({decision['timestamp'][:19]})"):
+                    st.markdown(f"**Decision ID:** {decision['decision_id']}")
+                    st.markdown(f"**Result:** {'✅ APPROVE' if decision['decision'] == 'APPROVE' else '❌ DENY'}")
+                    st.markdown(f"**Confidence:** {decision['confidence']}")
+                    st.markdown(f"**Reasoning:** {decision['reasoning']}")
+                    
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        st.metric("Policies", decision['policies_considered'])
+                    with col2:
+                        st.metric("Precedents", decision['precedents_found'])
+                    with col3:
+                        st.metric("Used Precedents", "Yes" if decision['used_precedents'] else "No")
+        else:
+            st.info("No decisions in session history either.")
 
 with tab3:
     st.header("System Information")

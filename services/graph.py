@@ -68,6 +68,23 @@ def get_decision(decision_id: str, database: Optional[str] = None) -> Optional[D
             return dict(node)
 
 
+def get_recent_decisions(limit: int = 20, database: Optional[str] = None) -> List[Dict[str, Any]]:
+    """Get recent decisions from Neo4j ordered by creation time."""
+    driver = _get_driver()
+    with driver:
+        session = driver.session(database=database) if database else driver.session()
+        with session:
+            cypher = """
+            MATCH (d:Decision)
+            RETURN d
+            ORDER BY d.created_at DESC
+            LIMIT $limit
+            """
+            result = session.run(cypher, limit=limit)
+            return [dict(rec["d"]) for rec in result]
+
+
+
 # --- Context Graph: Extended Schema Helpers ---
 
 def create_actor(actor_id: str, payload: Dict[str, Any], database: Optional[str] = None) -> None:
