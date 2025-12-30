@@ -314,6 +314,32 @@ def link_decision_follows_policy(
             )
 
 
+def link_decision_similarity(
+    decision_id: str,
+    precedent_id: str,
+    similarity: float,
+    database: Optional[str] = None,
+) -> None:
+    """Create (Decision)-[:SIMILAR_TO {similarity}]->(Decision) edge."""
+    if decision_id == precedent_id:
+        return  # avoid self-links
+    driver = _get_driver()
+    with driver:
+        session = driver.session(database=database) if database else driver.session()
+        with session:
+            cypher = """
+            MATCH (d:Decision {id: $decision_id}), (p:Decision {id: $precedent_id})
+            MERGE (d)-[r:SIMILAR_TO]->(p)
+            SET r.similarity = $similarity
+            """
+            session.run(
+                cypher,
+                decision_id=decision_id,
+                precedent_id=precedent_id,
+                similarity=float(similarity),
+            )
+
+
 # --- Vector Search: Precedent Matching ---
 
 def generate_embedding(text: str) -> List[float]:

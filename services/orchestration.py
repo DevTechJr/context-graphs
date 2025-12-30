@@ -28,6 +28,7 @@ from services.graph import (
     link_decision_justified_by_evidence,
     link_decision_overrides_policy,
     link_decision_follows_policy,
+    link_decision_similarity,
     add_embedding_to_decision,
 )
 from utils.visual_logging import (
@@ -251,6 +252,20 @@ def decide(
     
     # Add embedding for future precedent searches
     add_embedding_to_decision(decision_id, database=database)
+
+    # Persist similarity edges to precedents (if any were found)
+    if precedents:
+        for prec in precedents:
+            decision_ref = prec.get("decision")
+            if isinstance(decision_ref, dict):
+                prec_id = decision_ref.get("id")
+                if prec_id:
+                    link_decision_similarity(
+                        decision_id=decision_id,
+                        precedent_id=prec_id,
+                        similarity=prec.get("similarity", 0.0),
+                        database=database,
+                    )
     
     # Create actor if not exists
     create_actor(actor_id, {
