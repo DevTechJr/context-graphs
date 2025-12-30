@@ -11,7 +11,7 @@ import os
 from datetime import datetime
 
 # Configuration - Use environment variable for API URL
-API_BASE_URL = os.getenv("API_BASE_URL", "http://127.0.0.1:8000")
+API_BASE_URL = os.getenv("API_BASE_URL", "https://context-graph-demo-anidev.onrender.com")
 
 # Page config
 st.set_page_config(
