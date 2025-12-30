@@ -416,8 +416,8 @@ with tab2:
                     st.markdown(f"**Reasoning:** {reasoning}")
                     
                     # Show full prompt
-                    with st.expander("View Full Request"):
-                        st.text(prompt)
+                    st.markdown("**Full Request:**")
+                    st.code(prompt, language="text")
                     
                     # Neo4j link
                     neo4j_url = f"https://browser.neo4j.io/?connectURL=neo4j+s://7d50579e.databases.neo4j.io"
