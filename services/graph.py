@@ -272,10 +272,10 @@ def query_policies_by_tags(tags: list[str], database: Optional[str] = None) -> l
         with session:
             cypher = """
             MATCH (p:Policy)
-            WHERE ANY(tag IN $tags WHERE tag IN p.tags)
+            WHERE (p.tags IS NULL OR ANY(tag IN $tags WHERE tag IN p.tags))
             AND (p.active IS NULL OR p.active = true)
             RETURN p
-            ORDER BY p.severity DESC
+            ORDER BY p.severity ASC
             """
             result = session.run(cypher, tags=tags)
             return [dict(rec["p"]) for rec in result]

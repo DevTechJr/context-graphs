@@ -273,10 +273,12 @@ def decide(
             # If evidence is a string, we could create an evidence node here
             # For now, we'll just skip linking (evidence is embedded in the prompt)
     
-    # Link policies (simplified: link to first policy as example)
+    # Link all policies that were considered
     if policies:
-        # In production, would parse which policies were actually used
-        link_decision_follows_policy(decision_id, policies[0]["id"], database=database)
+        for policy in policies:
+            policy_id = policy.get("id")
+            if policy_id:
+                link_decision_follows_policy(decision_id, policy_id, database=database)
     
     print_success(f"Decision recorded: {decision_id}")
     print_trace_summary(
