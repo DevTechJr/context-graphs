@@ -24,6 +24,7 @@ from services.graph import (
     search_similar_decisions,
     create_decision,
     create_actor,
+    create_evidence,
     link_actor_made_decision,
     link_decision_justified_by_evidence,
     link_decision_overrides_policy,
@@ -279,14 +280,20 @@ def decide(
     
     # Link evidence if provided
     if evidence:
-        for ev in evidence:
+        for i, ev in enumerate(evidence):
             # Handle both string evidence and dict evidence
             if isinstance(ev, dict):
                 ev_id = ev.get("id")
                 if ev_id:
                     link_decision_justified_by_evidence(decision_id, ev_id, database=database)
-            # If evidence is a string, we could create an evidence node here
-            # For now, we'll just skip linking (evidence is embedded in the prompt)
+            elif isinstance(ev, str):
+                # Create an Evidence node from string evidence
+                ev_id = f"{decision_id}-evidence-{i}"
+                create_evidence(ev_id, {
+                    "text": ev,
+                    "created_at": datetime.now().isoformat(),
+                }, database=database)
+                link_decision_justified_by_evidence(decision_id, ev_id, database=database)
     
     # Link all policies that were considered
     if policies:
