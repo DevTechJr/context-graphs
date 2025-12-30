@@ -276,9 +276,12 @@ def decide(
     # Link all policies that were considered
     if policies:
         for policy in policies:
-            policy_id = policy.get("id")
-            if policy_id:
-                link_decision_follows_policy(decision_id, policy_id, database=database)
+            link_decision_follows_policy(
+                decision_id,
+                policy_id=policy.get("id"),
+                policy_name=policy.get("name"),
+                database=database,
+            )
     
     print_success(f"Decision recorded: {decision_id}")
     print_trace_summary(

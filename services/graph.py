@@ -281,17 +281,37 @@ def query_policies_by_tags(tags: list[str], database: Optional[str] = None) -> l
             return [dict(rec["p"]) for rec in result]
 
 
-def link_decision_follows_policy(decision_id: str, policy_id: str, database: Optional[str] = None) -> None:
-    """Create (Decision)-[:FOLLOWS]->(Policy) when decision adheres to a policy."""
+def link_decision_follows_policy(
+    decision_id: str,
+    policy_id: Optional[str] = None,
+    policy_name: Optional[str] = None,
+    database: Optional[str] = None,
+) -> None:
+    """Create (Decision)-[:FOLLOWS]->(Policy), tolerating missing policy ids.
+
+    - Matches by policy id when provided
+    - Falls back to matching by name when id is missing
+    - Backfills a stable id on the policy when absent
+    """
     driver = _get_driver()
     with driver:
         session = driver.session(database=database) if database else driver.session()
         with session:
             cypher = """
-            MATCH (d:Decision {id: $decision_id}), (p:Policy {id: $policy_id})
+            MATCH (d:Decision {id: $decision_id})
+            MATCH (p:Policy)
+            WHERE ($policy_id IS NOT NULL AND p.id = $policy_id)
+               OR ($policy_name IS NOT NULL AND p.name = $policy_name)
+            // Backfill missing policy id to keep future matches stable
+            SET p.id = coalesce(p.id, $policy_id, toLower(replace($policy_name, ' ', '-')) + '-' + right(randomUUID(), 6))
             MERGE (d)-[:FOLLOWS]->(p)
             """
-            session.run(cypher, decision_id=decision_id, policy_id=policy_id)
+            session.run(
+                cypher,
+                decision_id=decision_id,
+                policy_id=policy_id,
+                policy_name=policy_name,
+            )
 
 
 # --- Vector Search: Precedent Matching ---
