@@ -549,45 +549,50 @@ with tab4:
     Connect to the Neo4j Aura instance to see all decision traces:
     
     **Connection Details:**
-    - URI: `neo4j+s://7d50579e.databases.neo4j.io`
-    - Database: `neo4j` (default)
-    - [Open in Neo4j Browser](https://browser.neo4j.io/?connectURL=neo4j+s://7d50579e.databases.neo4j.io)
+    - Message me to get invite access to view the Neo4J instance
     
-    **Useful Queries:**
-    
+    **Useful Queries (updated):**
+        
     ```cypher
-    // See all decisions
+    // Recent decisions (uses created_at)
     MATCH (d:Decision)
     RETURN d
-    ORDER BY d.timestamp DESC
-    LIMIT 10
+    ORDER BY d.created_at DESC
+    LIMIT 20
     
-    // See decision with full context
+    // Full trace for a decision
     MATCH (d:Decision {id: 'your-decision-id'})
     OPTIONAL MATCH (d)-[r]-(n)
     RETURN d, r, n
     
-    // Find all APPROVE decisions with high confidence
+    // High-confidence approvals
     MATCH (d:Decision)
     WHERE d.response = 'APPROVE' AND d.confidence > 0.9
     RETURN d.id, d.prompt, d.reasoning, d.confidence
+    ORDER BY d.confidence DESC
     
-    // See which policies are most frequently used
+    // Policies most often followed
     MATCH (p:Policy)<-[:FOLLOWS]-(d:Decision)
-    RETURN p.name, COUNT(d) as usage_count
+    RETURN p.name, COUNT(d) AS usage_count
     ORDER BY usage_count DESC
-    
-    // Find decisions that referenced precedents
-    MATCH (d:Decision)
-    WHERE d.precedents_found > 0
-    RETURN d.id, d.prompt, d.precedents_found, d.confidence
+
+    // Policies most often overridden
+    MATCH (p:Policy)<-[:OVERRIDES]-(d:Decision)
+    RETURN p.name, COUNT(d) AS overrides
+    ORDER BY overrides DESC
+
+    // Similarity-weighted precedents for a decision
+    MATCH (d:Decision {id:'your-decision-id'})-[s:SIMILAR_TO]->(prev:Decision)
+    RETURN prev.id AS precedent, s.similarity AS similarity
+    ORDER BY similarity DESC
     ```
-    
-    **Graph Schema:**
+        
+    **Graph Schema (expanded):**
     - **Decision** nodes: The actual decisions made
     - **Policy** nodes: Organizational rules and guidelines
-    - **Actor** nodes: Who made each decision
+    - **Actor** nodes: Who made each decision/approval
     - **Evidence** nodes: Supporting facts and context
-    - **PolicyCategory** nodes: Policy groupings
-    - Relationships: MADE, FOLLOWS, OVERRIDES, JUSTIFIED_BY, etc.
+    - **Incident** nodes: Operational events (e.g., outages)
+    - **Flag** nodes: Risk/exception tags (e.g., Revenue Risk, VP Exception)
+    - Relationships: MADE/APPROVED, FOLLOWS, OVERRIDES, JUSTIFIED_BY, CONSIDERED_INCIDENT, TAGGED_AS, SIMILAR_TO, FOR_CUSTOMER
     """)
