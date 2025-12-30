@@ -7,7 +7,7 @@ langgraph-prebuilt==0.1.8
 fastapi==0.115.6
 uvicorn[standard]==0.34.0
 python-dotenv==1.0.1
-openai==1.58.1
+openai==1.68.2
 requests==2.32.3
 streamlit==1.40.2
 pyvis==0.3.2
